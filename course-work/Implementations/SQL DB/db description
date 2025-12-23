@@ -1,0 +1,137 @@
+🏠 RealEswipe — Database Features
+
+📌 Project Overview
+
+RealEswipe is a real estate booking platform that connects users, apartments, listings, and bookings.
+The database is designed to support apartment availability matching, booking logic, and review management with automated business rules implemented directly at the database level.
+
+The system uses Microsoft SQL Server and includes tables, relationships, one function, one stored procedure, and one trigger, as required.
+
+⸻
+
+🗂 Database Structure (High Level)
+
+The database contains the following main entities:
+	•	User – platform users (tenants, owners, moderators)
+	•	Apartment – physical properties listed on the platform
+	•	Listing – rental offers for apartments
+	•	Form – user applications for renting
+	•	Match – availability matches between forms and listings
+	•	Booking – confirmed reservations
+	•	Review – user feedback after booking
+	•	Moderator – users responsible for apartment verification
+	•	User_Form – many-to-many relationship between users and forms
+
+The model includes:
+	•	One-to-many relationships
+	•	Many-to-many relationship (User ↔ Form)
+	•	Business logic enforced at database level
+
+⸻
+
+⚙️ Key Database Features
+
+1️⃣ Date Overlap Validation Function
+
+Function:
+real_eswipe.dates_overlap
+
+Purpose:
+Checks whether two date ranges overlap.
+
+Why it is important:
+This function is used to determine apartment availability when creating bookings and to prevent double bookings for overlapping dates.
+
+Logic (conceptual):
+	•	Accepts two date ranges
+	•	Returns TRUE if the periods overlap
+	•	Returns FALSE otherwise
+
+Usage example:
+
+SELECT real_eswipe.dates_overlap(
+    '2025-12-01', '2025-12-05',
+    '2025-12-03', '2025-12-10'
+);
+
+
+⸻
+
+2️⃣ Booking Creation Stored Procedure
+
+Stored Procedure:
+real_eswipe.sp_create_booking
+
+Purpose:
+Creates a new booking in a controlled and consistent way.
+
+What it does:
+	•	Calculates booking duration automatically
+	•	Inserts a new booking record
+	•	Triggers post-booking logic (status updates)
+
+Why it is important:
+Encapsulates booking logic in one place and prevents inconsistent inserts.
+
+Usage example:
+
+EXEC real_eswipe.sp_create_booking
+    @listing_id = 1,
+    @match_id = 36,
+    @start_date = '2025-12-10',
+    @end_date = '2025-12-15';
+
+
+⸻
+
+3️⃣ Automatic Match Status Update Trigger
+
+Trigger:
+trg_update_match_status_after_booking
+
+Activated:
+After a new booking is inserted.
+
+Purpose:
+Automatically updates match statuses based on booking dates.
+
+Trigger behavior:
+	•	Sets the booked match status to booked
+	•	Finds all other matches for the same apartment with overlapping dates
+	•	Updates their status to unavailable
+
+Why it is important:
+Guarantees data consistency and prevents overlapping bookings without requiring application-level logic.
+
+⸻
+
+🔐 Data Integrity Rules
+
+The database enforces the following rules:
+	•	One apartment cannot be booked for overlapping periods
+	•	Only existing matches can be converted into bookings
+	•	Reviews can be written only for existing bookings
+	•	Apartment availability is controlled automatically via trigger logic
+
+⸻
+
+📊 Reporting & Analytics Ready
+
+The database is fully compatible with Power BI and supports:
+	•	Average rating per apartment
+	•	Average price by rental type
+	•	Number of bookings per apartment
+	•	KPI cards (total users, listings, reviews)
+
+⸻
+
+✅ Academic Requirements Coverage
+
+✔ Minimum 6 entities
+✔ More than 30 attributes
+✔ One many-to-many relationship
+✔ One function
+✔ One stored procedure
+✔ One trigger
+✔ Business logic implemented in SQL Server
+
